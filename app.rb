@@ -112,7 +112,7 @@ module Comet
       end
 
       def extract messages, time
-        messages.select{ |msg| messages["time"] > time }.to_json
+        messages.select{ |msg| msg["time"] > time }.to_json
       end
     }
 
