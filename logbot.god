@@ -6,6 +6,6 @@ end
 
 God.watch do |w|
   w.name = "Logbot web"
-  w.start = "unicorn -p 15000 /home/rails/logbot/config.ru"
+  w.start = "rainbows -N -p 15000 -c /home/rails/logbot/rainbows.rb /home/rails/logbot/config.ru"
   w.keepalive
 end
