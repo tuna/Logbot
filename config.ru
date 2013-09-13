@@ -2,7 +2,7 @@
 require File.join(File.dirname(__FILE__), "app")
 
 use Rack::ContentLength
-use Rack::ContentType
+use Rack::ContentType, 'text/html; charset=utf-8'
 use Rack::CommonLogger
 
 run Rack::URLMap.new \
