@@ -40,11 +40,10 @@
         <div>
           <ul class="logs">
             <% @msgs.each_index do |i| %>
-              <% linked_msg = @msgs[i]["msg"].gsub(/&(?!nbsp;)/, '&amp;').gsub(/<(?!\/?span)/, '&lt;').gsub(/http[s]*:\/\/[^\s]+/, '<a href="\0">\0</a>') %>
               <li id="<%= i %>">
                 <a class="time" href="<%= "#{@date}##{i}" %>" target="_self" title="<%= "##{i}" %>"><%= Time.at(@msgs[i]["time"].to_f).strftime("%T") %></a>
                 <span class="nick"><%= @msgs[i]["nick"] %></span>
-                <span class="msg wordwrap"><%= linked_msg %></span>
+                <span class="msg wordwrap"><%= user_text @msgs[i]["msg"] %></span>
               </li>
             <% end %>
           </ul>

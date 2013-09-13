@@ -6,6 +6,7 @@ require "json"
 require "time"
 require "date"
 require "erb"
+require "cgi"
 
 require "redis"
 require "jellyfish"
@@ -37,6 +38,14 @@ module IRC_Log
       def views path
         @views ||= {}
         @views[path] ||= File.read("#{__dir__}/views/#{path}.erb")
+      end
+
+      def user_text text
+        autolink(CGI.escape_html(text))
+      end
+
+      def autolink text
+        text.gsub(%r{https?://\S+\b}, '<a href="\0">\0</a>')
       end
     }
 
