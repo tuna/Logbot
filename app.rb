@@ -10,6 +10,13 @@ require "erb"
 require "redis"
 require "jellyfish"
 
+# ruby 1.9- compatibility
+unless respond_to?(:__dir__)
+  def __dir__
+    File.dirname(__FILE__)
+  end
+end
+
 $redis = Redis.new(:thread_safe => true)
 
 module Routes
