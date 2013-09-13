@@ -107,28 +107,19 @@ module Comet
       json = extract_if(msgs, time)
       next json if json
 
-      headers_merge('rack.hijack' => lambda{ |sock|
-        Thread.new do # TODO: use a thread pool or queue to avoid exhausting
-          n = 0
-          loop do
-            sleep 0.5
-            msgs = fetch_messages(channel, date)
-            if n <= 120 && json = extract_if(msgs, time)
-              sock.write(json)
-              sock.close
-              break
-            elsif n <= 120
-              n += 1
-            else
-              sock.write(extract(msg, time))
-              sock.close
-              break
-            end
-          end
+      # we simply block here because we're in a threaded server anyway
+      n = 0
+      loop do
+        sleep 0.5
+        msgs = fetch_messages(channel, date)
+        if n <= 120 && json = extract_if(msgs, time)
+          break json
+        elsif n <= 120
+          n += 1
+        else
+          break extract(msgs, time)
         end
-      })
-
-      '' # it's hijacked so we don't care the response body
+      end
     end
   end
 end
