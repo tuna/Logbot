@@ -7,7 +7,7 @@ gem 'redis'     # used in web and agent
 
 # All of below are optional/selectional:
 group :server do
-  gem 'unicorn'
+  gem 'rainbows'
 end
 
 # deployment utilities
