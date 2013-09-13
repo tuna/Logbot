@@ -11,7 +11,7 @@ require "redis"
 require "jellyfish"
 
 # ruby 1.9- compatibility
-unless respond_to?(:__dir__)
+unless respond_to?(:__dir__, true)
   def __dir__
     File.dirname(__FILE__)
   end
