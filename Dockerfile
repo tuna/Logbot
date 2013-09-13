@@ -4,9 +4,9 @@ run     echo "deb http://ppa.launchpad.net/chris-lea/redis-server/ubuntu precise
 run     apt-get update
 run     apt-get install --force-yes -y ruby1.9.1 rubygems redis-server
 add     .  /
-run	gem install bundler
+run     gem install bundler
 run     apt-get install --force-yes -y ruby1.9.1-dev
-run 	bundle install
+run     bundle install
 run     compass compile
 run     cp logbot.rb.example logbot.rb
 expose  6379
