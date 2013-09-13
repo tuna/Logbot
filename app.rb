@@ -5,42 +5,56 @@ Encoding.default_external = "utf-8"
 require "json"
 require "time"
 require "date"
-require "sinatra/base"
-require "sinatra/async"
+require "erb"
+
 require "redis"
-require "compass"
-require "eventmachine"
+require "jellyfish"
 
 $redis = Redis.new(:thread_safe => true)
 
-module IRC_Log
-  class App < Sinatra::Base
-    configure do
-      set :protection, :except => :frame_options
-    end
+module Routes
+  CHANNEL = '(?<channel>[\w\.]+)'
+  DATE    = '(?<date>[\w\-]+)'
+  TIME    = '(?<time>[\d\.]+)'
+end
 
-    get "/" do
+module IRC_Log
+  class App
+    include Jellyfish, Routes
+
+    controller_include Module.new{
+      def erb path
+        ERB.new(views(path)).result(binding)
+      end
+
+      def views path
+        @views ||= {}
+        @views[path] ||= File.read("#{__dir__}/views/#{path}.erb")
+      end
+    }
+
+    get %r{^/?$} do
       redirect "/channel/g0v.tw/today"
     end
 
-    get "/channel/:channel" do |channel|
-      redirect "/channel/#{channel}/today"
+    get %r{^/?channel/#{CHANNEL}$} do |m|
+      redirect "/channel/#{m[:channel]}/today"
     end
 
-    get "/channel/:channel/:date" do |channel, date|
-      case date
+    get %r{^/?channel/#{CHANNEL}/#{DATE}$} do |m|
+      case m[:date]
         when "today"
           @date = Time.now.strftime("%F")
         when "yesterday"
           @date = (Time.now - 86400).strftime("%F")
         else
           # date in "%Y-%m-%d" format (e.g. 2013-01-01)
-          @date = date
+          @date = m[:date]
       end
 
-      @channel = channel
+      @channel = m[:channel]
 
-      @msgs = $redis.lrange("irclog:channel:##{channel}:#{@date}", 0, -1)
+      @msgs = $redis.lrange("irclog:channel:##{@channel}:#{@date}", 0, -1)
       @msgs = @msgs.map {|msg|
         msg = JSON.parse(msg)
         if msg["msg"] =~ /^\u0001ACTION (.*)\u0001$/
@@ -53,10 +67,10 @@ module IRC_Log
       erb :channel
     end
 
-    get "/widget/:channel" do |channel|
-      @channel = channel
+    get %r{^/?widget/#{CHANNEL}$} do |m|
+      @channel = m[:channel]
       today = Time.now.strftime("%Y-%m-%d")
-      @msgs = $redis.lrange("irclog:channel:##{channel}:#{today}", -25, -1)
+      @msgs = $redis.lrange("irclog:channel:##{@channel}:#{today}", -25, -1)
       @msgs = @msgs.map {|msg| JSON.parse(msg) }.reverse
 
       erb :widget
@@ -66,26 +80,55 @@ end
 
 
 module Comet
-  class App < Sinatra::Base
-    register Sinatra::Async
+  class App
+    include Jellyfish, Routes
 
-    get %r{/poll/(.*)/([\d\.]+)/updates.json} do |channel, time|
-      date = Time.at(time.to_f).strftime("%Y-%m-%d")
-      msgs = $redis.lrange("irclog:channel:##{channel}:#{date}", -10, -1).map{|msg| ::JSON.parse(msg) }
-      if not msgs.empty? and msgs[-1]["time"] > time
-        return msgs.select{|msg| msg["time"] > time }.to_json
+    controller_include Module.new{
+      def fetch_messages channel, date
+        $redis.lrange("irclog:channel:##{channel}:#{date}", -10, -1).
+          map{ |msg| ::JSON.parse(msg) }
       end
 
-      EventMachine.run do
-        n, timer = 0, EventMachine::PeriodicTimer.new(0.5) do
-          msgs = $redis.lrange("irclog:channel:##{channel}:#{date}", -10, -1).map{|msg| ::JSON.parse(msg) }
-          if not msgs.empty? and msgs[-1]["time"] > time or n > 120
-            timer.cancel
-            return msgs.select{|msg| msg["time"] > time }.to_json
-          end
-          n += 1
+      def extract_if messages, time
+        if not messages.empty? and messages[-1]["time"] > time
+          extract(messages, time)
         end
       end
+
+      def extract messages, time
+        messages.select{ |msg| messages["time"] > time }.to_json
+      end
+    }
+
+    get %r{^/?poll/#{CHANNEL}/#{TIME}/updates\.json$} do |m|
+      channel, time = m[:channel], m[:time]
+      date = Time.at(time.to_f).strftime("%Y-%m-%d")
+      msgs = fetch_messages(channel, date)
+      json = extract_if(msgs, time)
+      next json if json
+
+      headers_merge('rack.hijack' => lambda{ |sock|
+        Thread.new do # TODO: use a thread pool or queue to avoid exhausting
+          n = 0
+          loop do
+            sleep 0.5
+            msgs = fetch_messages(channel, date)
+            if n <= 120 && json = extract_if(msgs, time)
+              sock.write(json)
+              sock.close
+              break
+            elsif n <= 120
+              n += 1
+            else
+              sock.write(extract(msg, time))
+              sock.close
+              break
+            end
+          end
+        end
+      })
+
+      '' # it's hijacked so we don't care the response body
     end
   end
 end

@@ -1,2 +1,2 @@
-web: shotgun -o 0.0.0.0 -p 15000 config.ru
+web: unicorn -N -p 15000
 logbot: ruby logbot.rb
