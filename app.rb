@@ -27,7 +27,7 @@ module IRC_Log
       redirect "/channel/#{channel}/today"
     end
 
-    get "/channel/:channel/:date" do |channel, date|
+    get "/channel/:channel/:date/?:format?" do |channel, date, format|
       case date
         when "today"
           @date = Time.now.strftime("%F")
@@ -47,10 +47,18 @@ module IRC_Log
           msg["msg"].gsub!(/^\u0001ACTION (.*)\u0001$/, "<span class=\"nick\">#{msg["nick"]}</span>&nbsp;\\1")
           msg["nick"] = "*"
         end
+        if format == 'json'
+          msg["time"] = Time.at(msg["time"].to_f).strftime("%F %T")
+        end
         msg
       }
 
-      erb :channel
+      if format == 'json'
+        content_type :json
+        @msgs.to_json
+      else
+        erb :channel
+      end
     end
 
     get "/channel/:channel/:date/:line" do |channel, date, line|
