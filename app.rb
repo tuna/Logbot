@@ -27,7 +27,7 @@ module IRC_Log
       redirect "/channel/#{channel}/today"
     end
 
-    get "/channel/:channel/:date/?:format?" do |channel, date, format|
+    get %r{/channel/([-.\w]+)/([-\d]+)/?(json)?} do |channel, date, format|
       case date
         when "today"
           @date = Time.now.strftime("%F")
