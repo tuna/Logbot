@@ -10,22 +10,17 @@ var strftime = function(date) {
   return hour + ":" + min + ":" + sec;
 };
 
+
 var lastTimestamp = undefined;
 var seenTimestamp = {};
-var pollNewMsg = function(isWidget, isContiuation) {
+var pollNewMsg = function(isWidget) {
   var isWidget = (isWidget == null) ? false : isWidget;
-  var INTERVAL = (isWidget ? 100000 : 10000);
-
-if (!isContiuation) {
-return setTimeout(function(){ pollNewMsg(isWidget, true); }, Math.round(Math.random() * INTERVAL + INTERVAL));
-}
-
-  var time = Math.floor(lastTimestamp || (new Date()).getTime() / 1000.0);
+  var time = lastTimestamp || (new Date()).getTime() / 1000.0;
   $.ajax({
     url: "/comet/poll/" + channel + "/" + time + "/updates.json",
     type: "get",
     async: true,
-    cache: true,
+    cache: false,
     timeout: 60000,
 
     success: function (data) {
@@ -74,14 +69,14 @@ try {
 } catch (e) {};
 
 setTimeout(function(){
-      pollNewMsg(isWidget, true);
-}, INTERVAL);
+      pollNewMsg(isWidget);
+}, 3000);
     },
 
     error: function() {
 setTimeout(function(){
-      pollNewMsg(isWidget, true);
-}, Math.round(Math.random() * INTERVAL + INTERVAL));
+      pollNewMsg(isWidget);
+}, Math.round(Math.random() * 3000 + 3000));
     }
   });
 }
