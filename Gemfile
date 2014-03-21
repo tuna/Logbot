@@ -1,7 +1,6 @@
 source 'http://rubygems.org'
 
 gem 'rake'
-gem 'foreman'
 gem 'sinatra'
 gem 'async_sinatra'
 gem 'eventmachine'

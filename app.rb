@@ -157,6 +157,7 @@ module Comet
         return msgs.select{|msg| msg["time"] > time }.to_json
       end
 
+return
       EventMachine.run do
         n, timer = 0, EventMachine::PeriodicTimer.new(0.5) do
           msgs = $redis.lrange("irclog:channel:##{channel}:#{date}", -10, -1).map{|msg| ::JSON.parse(msg) }
