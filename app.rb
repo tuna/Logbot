@@ -90,6 +90,16 @@ module IRC_Log
       erb :quote
     end
 
+    get "/live/:channel" do |channel|
+      @channel = channel
+      today = Time.now.strftime("%Y-%m-%d")
+      @msgs = $redis.lrange("irclog:channel:##{channel}:#{today}", -25, -1)
+      @msgs = @msgs.map {|msg| JSON.parse(msg) }.reverse
+      @msgs = @msgs.select {|msg| msg["msg"][/^\[\S*\]\s.*/] }
+
+      erb :live
+    end
+
     get "/widget/:channel" do |channel|
       @channel = channel
       today = Time.now.strftime("%Y-%m-%d")

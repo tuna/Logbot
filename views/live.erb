@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Logbot | #<%= @channel %></title>
+    <link rel="stylesheet" type="text/css" href="/assets/widget.css">
+    <base target="_blank" />
+    <meta name="viewport" content="width=device-width; initial-scale=1.0;"/>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="header">
+        <h1>Logbot <span class="channel">#<%= @channel %></span></h1>
+      </div>
+      <div class="body">
+        <div>
+          <ul class="logs">
+            <% @msgs.each_index do |i| %>
+              <% linked_msg = @msgs[i]["msg"].gsub(/&(?!nbsp;)/, '&amp;').gsub(/<(?!\/?span)/, '&lt;').gsub(/http[s]*:\/\/[^\s]+/, '<a href="\0">\0</a>') %>
+              <% index = @msgs.length - 1 - i %>
+              <li id="<%= index %>">
+                <a class="time" href="<%= "##{index}" %>" target="_self" title="<%= "##{index}" %>"><%= Time.at(@msgs[i]["time"].to_f).strftime("%T") %></a>
+                <span class="nick"><%= @msgs[i]["nick"] %></span>
+                <span class="msg wordwrap"><%= linked_msg %></span>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+      <%= erb :_footer %>
+    </div>
+    <script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+    <script>
+      var channel = "<%= @channel %>";
+    </script>
+    <script src="/assets/live.js"></script>
+    <script>
+      pollNewMsg(true);
+    </script>
+  </body>
+</html>
