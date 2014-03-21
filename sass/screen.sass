@@ -65,7 +65,7 @@ body
 .body
   .channel, .date, .scroll_switch
     color: $cyan
-    font: 14pt/20px "Droid Sans Mono", monospace
+    font: 14pt/20px monospace
     @include inline-block
     @include border-radius(5px)
     cursor: pointer
@@ -104,7 +104,7 @@ body
     
   .logs
     list-style-type: none
-    font-family: "Droid Sans Mono", monospace
+    font-family: monospace
     // margin: 0 10px
     li
       border-top: 1px solid #eee
@@ -126,16 +126,16 @@ body
         color: #888
         vertical-align: text-top
         width: 70px
-      a.time
-        text-decoration: none
-      a.time:hover
-        text-decoration: underline
-        background-color: transparent
       .nick
         color: #b58900
         width: 110px
         text-align: right
         margin-left: 5px
+      a.time, a.nick
+        text-decoration: none
+      a.time:hover, a.nick:hover
+        text-decoration: underline
+        background-color: transparent
       .msg
         color: #333
         font-family: "Fira Sans OT","XinGothic-Citicpress","XinGothic Citicpress", "Lantinghei TC", "Hiragino Kaku Gothic Pro", "Apple LiGothic", "Heiti TC", "LiHei Pro", "Microsoft YaHei", "微軟正黑體", "文泉驿正黑", sans-serif

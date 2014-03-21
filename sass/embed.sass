@@ -1,0 +1,83 @@
+@import "compass"
+@import "compass/reset"
+@import "compass/css3/box"
+@import "solarized"
+
+html *
+  // @include box-shadow(0 0 0 1px darken(white, 75%))
+  color-profile: sRGB
+  rendering-intent: auto
+
+@include font-face("Fira Sans OT", font-files("FiraSansOT-Regular.woff", woff, "FiraSansOT-Regular.otf", opentype,  "FiraSansOT-Regular.ttf", truetype), "FiraSansOT-Regular.eot")
+
+html
+  height: 100%
+body
+  font-family: "Fira Sans OT", "XinGothic-Citicpress", "XinGothic Citicpress", "Lantinghei TC", "Hiragino Kaku Gothic Pro", "Apple LiGothic", "Heiti TC", "LiHei Pro", "Microsoft YaHei", "微軟正黑體", "文泉驿正黑", sans-serif
+  height: 100%
+  a
+    color: $blue
+    text-decoration: none
+    &:hover
+      background: $blue
+      color: $base03
+
+.logbot
+  position: absolute
+  margin: auto
+  top: 0
+  left: 0
+  bottom: 0
+  right: 0
+  width: 40em
+  height: 5em
+  border: 1px solid #888
+  border-left-width: 48px
+  font-family: monospace
+  font-weight: bold
+  font-size: 150%
+  &:before
+    content: "\201C"
+    font-family: "Fira Sans OT", "XinGothic-Citicpress", "XinGothic Citicpress", "Lantinghei TC", "Hiragino Kaku Gothic Pro", "Apple LiGothic", "Heiti TC", "LiHei Pro", "Microsoft YaHei", "微軟正黑體", "文泉驿正黑", sans-serif
+    font-size: 144px
+    margin-left: -64px
+    color: #eee
+  .msg
+    position: absolute
+    top: 2em
+    left: 2em
+    color: #333
+  .nick
+    position: absolute
+    top: 0.5em
+    left: 1em
+    color: #b58900
+    &:after
+      content: ">"
+      color: #888
+  .time
+    position: absolute
+    bottom: 0.5em
+    right: 1em
+    font-size: 80%
+    color: #888
+    &:before
+      content: "at "
+  a.time
+    text-decoration: none
+    &:hover
+      text-decoration: underline
+      background-color: transparent
+
+.footer
+  font-family: "Ropa Sans", sans-serif
+  position: absolute
+  margin: auto
+  left: 0
+  bottom: 35px
+  right: 0
+  width: 40em
+  height: 1em
+  text-align: center
+  text-transform: uppercase
+

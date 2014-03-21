@@ -3,8 +3,6 @@
   <head>
     <title>Logbot | #<%= @channel %></title>
     <link rel="stylesheet" type="text/css" href="/assets/screen.css">
-    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ropa+Sans">
-    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Droid+Sans+Mono">
     <base target="_blank" />
     <meta name="viewport" content="width=device-width; initial-scale=1.0;"/>
   </head>
@@ -42,16 +40,14 @@
             <% @msgs.each_index do |i| %>
               <li id="<%= i %>">
                 <a class="time" href="<%= "#{@date}##{i}" %>" target="_self" title="<%= "##{i}" %>"><%= Time.at(@msgs[i]["time"].to_f).strftime("%T") %></a>
-                <span class="nick"><%= @msgs[i]["nick"] %></span>
-                <span class="msg wordwrap"><%= user_text @msgs[i]["msg"] %></span>
+                <a class="nick" href="<%= "#{@date}/#{i}" %>" target="_self" title="quote"><%= @msgs[i]["nick"] %></a>
+                <span class="msg wordwrap"><%= linked_msg %></span>
               </li>
             <% end %>
           </ul>
         </div>
       </div>
-      <div class="footer">
-        <p>Powered by Logbot 2013 | <a href="https://github.com/dannvix/Logbot">GitHub Repo</a></p>
-      </div>
+      <%= erb :_footer %>
     </div>
     <script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
     <script>

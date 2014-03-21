@@ -1,0 +1,7 @@
+<blockquote class="logbot">
+  <p class="msg"><%= @msg %></p>
+  <footer>
+    <span class="nick"><%= @nick %></span>
+    <a class="time" href="<%= "/channel/#{@channel}/#{@date}##{@line}" %>" target="_self" title="<%= "##{@line}" %>"><%= Time.at(@time).strftime("%T") %></a>
+  </footer>
+</blockquote>

@@ -57,8 +57,8 @@ module IRC_Log
       redirect "/channel/#{m[:channel]}/today"
     end
 
-    get %r{^/?channel/#{CHANNEL}/#{DATE}$} do |m|
-      case m[:date]
+    get %r{^/channel/([-.\w]+)/(today|yesterday|[-\d]+)/?(json)?$} do |channel, date, format|
+      case date
         when "today"
           @date = Time.now.strftime("%F")
         when "yesterday"
@@ -77,10 +77,57 @@ module IRC_Log
           msg["msg"].gsub!(/^\u0001ACTION (.*)\u0001$/, "<span class=\"nick\">#{msg["nick"]}</span>&nbsp;\\1")
           msg["nick"] = "*"
         end
+        if format == 'json'
+          msg["time"] = Time.at(msg["time"].to_f).strftime("%F %T")
+        end
         msg
       }
 
-      erb :channel
+      if format == 'json'
+        content_type :json
+        @msgs.to_json
+      else
+        erb :channel
+      end
+    end
+
+    get "/channel/:channel/:date/:line" do |channel, date, line|
+      case date
+        when "today"
+          @date = Time.now.strftime("%F")
+        when "yesterday"
+          @date = (Time.now - 86400).strftime("%F")
+        else
+          # date in "%Y-%m-%d" format (e.g. 2013-01-01)
+          @date = date
+      end
+
+      @channel = channel
+
+      @line = line.to_i
+
+      msgs = $redis.lrange("irclog:channel:##{@channel}:#{@date}", 0, -1)
+      if 0 > @line or @line >= msgs.length
+        halt(404)
+      end
+      msg = JSON.parse(msgs[@line])
+      @nick = msg["nick"]
+      @msg = msg["msg"]
+      @time = msg["time"].to_f
+
+      @url = CGI.escape(request.url)
+
+      erb :quote
+    end
+
+    get "/live/:channel" do |channel|
+      @channel = channel
+      today = Time.now.strftime("%Y-%m-%d")
+      @msgs = $redis.lrange("irclog:channel:##{channel}:#{today}", -25, -1)
+      @msgs = @msgs.map {|msg| JSON.parse(msg) }.reverse
+      @msgs = @msgs.select {|msg| msg["msg"][/^\[\S*\]\s.*/] }
+
+      erb :live
     end
 
     get %r{^/?widget/#{CHANNEL}$} do |m|
@@ -90,6 +137,50 @@ module IRC_Log
       @msgs = @msgs.map {|msg| JSON.parse(msg) }.reverse
 
       erb :widget
+    end
+
+    get "/oembed.?:type?" do |type|
+      p params[:url]
+      match = /http:\/\/.+\/channel\/(.+)\/(.+)\/(.+)/.match(params[:url])
+
+      @channel = match[1]
+
+      date = match[2]
+      case date
+        when "today"
+          @date = Time.now.strftime("%F")
+        when "yesterday"
+          @date = (Time.now - 86400).strftime("%F")
+        else
+          # date in "%Y-%m-%d" format (e.g. 2013-01-01)
+          @date = date
+      end
+
+      line = match[3].to_i
+      msgs = $redis.lrange("irclog:channel:##{@channel}:#{@date}", 0, -1)
+      if 0 > line or line >= msgs.length
+        halt(404)
+      end
+      msg = JSON.parse(msgs[line])
+
+      @nick = msg["nick"]
+      @msg = msg["msg"]
+
+      case type
+        when "xml"
+          content_type :xml
+          erb :oembed
+        else
+          content_type :json
+          {
+            :version       => "1.0",
+            :type          => "link",
+            :title         => "Logbot | ##{@channel} | #{@nick}> #{@msg}",
+            :author_name   => @nick,
+            :providor_name => "Logbot",
+            :providor_url  => request.base_url
+          }.to_json
+        end
     end
   end
 end

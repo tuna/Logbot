@@ -16,7 +16,7 @@ How to Deploy
 4. Fire up your `redis-server`
 5. Specify target channels in `logbot.rb`
 6. Type `foreman start` to launch web server (WEBrick) and Logbot agent
-7. Visit [http://localhost:5000](http://localhost:5000).
+7. Visit [http://localhost:15000](http://localhost:15000).
 
 
 How to Contribute
