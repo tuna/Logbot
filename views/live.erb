@@ -4,6 +4,11 @@
     <title>Logbot | #<%= @channel %></title>
     <link rel="stylesheet" type="text/css" href="/assets/widget.css">
     <base target="_blank" />
+<style>
+/* body { background: black !important } 
+.body .logs li .msg { color: white !important; font-size: 22px !important }
+*/
+</style>
     <meta name="viewport" content="width=device-width; initial-scale=1.0;"/>
   </head>
   <body>
@@ -32,7 +37,7 @@
     <script>
       var channel = "<%= @channel %>";
     </script>
-    <script src="/assets/live.js"></script>
+    <script src="/assets/live.js?"></script>
     <script>
       pollNewMsg(true);
     </script>
