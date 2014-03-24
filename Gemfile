@@ -7,7 +7,13 @@ gem 'redis'     # used in web and agent
 
 # All of below are optional/selectional:
 group :server do
-  gem 'rainbows'
+  platform(:ruby) do
+    gem 'rainbows'
+  end
+
+  platform(:jruby) do
+    gem 'trinidad'
+  end
 end
 
 # compile assets
