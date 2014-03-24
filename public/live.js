@@ -24,7 +24,7 @@ var pollNewMsg = function(isWidget) {
     timeout: 60000,
 
     success: function (data) {
-      var msgs = JSON.parse(data);
+      var msgs = JSON.parse(data || '[]');
       for (var i = 0; i < msgs.length; i++) {
         var msg = msgs[i];
 	if (seenTimestamp[msg.time]) { continue; }

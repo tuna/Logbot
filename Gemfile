@@ -10,12 +10,6 @@ group :server do
   gem 'rainbows'
 end
 
-# deployment utilities
-group :deploy do
-  gem 'foreman'
-  gem 'god'
-end
-
 # compile assets
 group :assets do
   gem 'compass'
