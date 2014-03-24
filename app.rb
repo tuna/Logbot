@@ -127,40 +127,30 @@ module IRC_Log
     get %r{^/?widget/#{CHANNEL}$} do |m|
       @channel = m[:channel]
       today = Time.now.strftime("%Y-%m-%d")
-      @msgs = $redis.lrange("irclog:channel:##{@channel}:#{today}", -25, -1)
-      @msgs = @msgs.map {|msg| JSON.parse(msg) }.reverse
+      @msgs = $redis.lrange("irclog:channel:##{@channel}:#{today}", -25, -1).
+        map {|msg| JSON.parse(msg) }.reverse
 
       erb :widget
     end
 
-    get "/oembed.?:type?" do |type|
-      p params[:url]
-      match = /http:\/\/.+\/channel\/(.+)\/(.+)\/(.+)/.match(params[:url])
+    get %r{^/?oembed(\.(?<type>\w+))?$} do |m|
+      not_found unless url = request.params['url']
+      match = %r{http://.+/channel/#{CHANNEL}/#{DATE}/#{LINE}}.match(url)
 
-      @channel = match[1]
+      @channel = match[:channel]
+      @date    = date(match)
+      line     = match[:line].to_i
 
-      date = match[2]
-      case date
-        when "today"
-          @date = Time.now.strftime("%F")
-        when "yesterday"
-          @date = (Time.now - 86400).strftime("%F")
-        else
-          # date in "%Y-%m-%d" format (e.g. 2013-01-01)
-          @date = date
-      end
-
-      line = match[3].to_i
       msgs = $redis.lrange("irclog:channel:##{@channel}:#{@date}", 0, -1)
       if 0 > line or line >= msgs.length
-        halt(404)
+        not_found
       end
       msg = JSON.parse(msgs[line])
 
       @nick = msg["nick"]
       @msg = msg["msg"]
 
-      case type
+      case m[:type]
         when "xml"
           headers_merge('Content-Type' => 'application/xml')
           erb :oembed
