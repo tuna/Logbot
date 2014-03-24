@@ -24,7 +24,7 @@ module Routes
   CHANNEL = '(?<channel>[\w\.]+)'
   DATE    = '(?<date>[\w\-]+)'
   TIME    = '(?<time>[\d\.]+)'
-  FORMAT  = '(?<format>\w+)'
+  FORMAT  = '(?<format>[A-Za-z]+)'
   LINE    = '(?<line>\d+)'
 end
 
@@ -98,19 +98,17 @@ module IRC_Log
 
     get %r{^/?channel/#{CHANNEL}/#{DATE}/#{LINE}$} do |m|
       @date    = date(m)
-      @channel = m(:channel)
-
-      @line = line.to_i
+      @channel = m[:channel]
+      @line    = m[:line].to_i
 
       msgs = $redis.lrange("irclog:channel:##{@channel}:#{@date}", 0, -1)
       if 0 > @line or @line >= msgs.length
-        halt(404)
+        not_found
       end
       msg = JSON.parse(msgs[@line])
       @nick = msg["nick"]
-      @msg = msg["msg"]
+      @msg  = msg["msg"]
       @time = msg["time"].to_f
-
       @url = CGI.escape(request.url)
 
       erb :quote
