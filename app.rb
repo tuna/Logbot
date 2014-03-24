@@ -24,6 +24,8 @@ module Routes
   CHANNEL = '(?<channel>[\w\.]+)'
   DATE    = '(?<date>[\w\-]+)'
   TIME    = '(?<time>[\d\.]+)'
+  FORMAT  = '(?<format>\w+)'
+  LINE    = '(?<line>\d+)'
 end
 
 module IRC_Log
@@ -47,6 +49,18 @@ module IRC_Log
       def autolink text
         text.gsub(%r{https?://\S+\b}, '<a href="\0">\0</a>')
       end
+
+      def date m
+        case m[:date]
+        when "today"
+          Time.now.strftime("%F")
+        when "yesterday"
+          (Time.now - 86400).strftime("%F")
+        else
+          # date in "%Y-%m-%d" format (e.g. 2013-01-01)
+          m[:date]
+        end
+      end
     }
 
     get %r{^/?$} do
@@ -57,52 +71,34 @@ module IRC_Log
       redirect "/channel/#{m[:channel]}/today"
     end
 
-    get %r{^/channel/([-.\w]+)/(today|yesterday|[-\d]+)/?(json)?$} do |channel, date, format|
-      case date
-        when "today"
-          @date = Time.now.strftime("%F")
-        when "yesterday"
-          @date = (Time.now - 86400).strftime("%F")
-        else
-          # date in "%Y-%m-%d" format (e.g. 2013-01-01)
-          @date = m[:date]
-      end
-
+    get %r{^/?channel/#{CHANNEL}/#{DATE}(/#{FORMAT})?$} do |m|
+      @date    = date(m)
       @channel = m[:channel]
 
-      @msgs = $redis.lrange("irclog:channel:##{@channel}:#{@date}", 0, -1)
-      @msgs = @msgs.map {|msg|
-        msg = JSON.parse(msg)
-        if msg["msg"] =~ /^\u0001ACTION (.*)\u0001$/
-          msg["msg"].gsub!(/^\u0001ACTION (.*)\u0001$/, "<span class=\"nick\">#{msg["nick"]}</span>&nbsp;\\1")
-          msg["nick"] = "*"
-        end
-        if format == 'json'
-          msg["time"] = Time.at(msg["time"].to_f).strftime("%F %T")
-        end
-        msg
-      }
+      @msgs = $redis.lrange("irclog:channel:##{@channel}:#{@date}", 0, -1).
+        map {|msg|
+          msg = JSON.parse(msg)
+          if msg["msg"] =~ /^\u0001ACTION (.*)\u0001$/
+            msg["msg"].gsub!(/^\u0001ACTION (.*)\u0001$/, "<span class=\"nick\">#{msg["nick"]}</span>&nbsp;\\1")
+            msg["nick"] = "*"
+          end
+          if m[:format] == 'json'
+            msg["time"] = Time.at(msg["time"].to_f).strftime("%F %T")
+          end
+          msg
+        }
 
-      if format == 'json'
-        content_type :json
+      if m[:format] == 'json'
+        headers_merge('Content-Type' => 'application/json')
         @msgs.to_json
       else
         erb :channel
       end
     end
 
-    get "/channel/:channel/:date/:line" do |channel, date, line|
-      case date
-        when "today"
-          @date = Time.now.strftime("%F")
-        when "yesterday"
-          @date = (Time.now - 86400).strftime("%F")
-        else
-          # date in "%Y-%m-%d" format (e.g. 2013-01-01)
-          @date = date
-      end
-
-      @channel = channel
+    get %r{^/?channel/#{CHANNEL}/#{DATE}/#{LINE}$} do |m|
+      @date    = date(m)
+      @channel = m(:channel)
 
       @line = line.to_i
 
@@ -120,12 +116,12 @@ module IRC_Log
       erb :quote
     end
 
-    get "/live/:channel" do |channel|
-      @channel = channel
+    get %r{^/live/#{CHANNEL}$} do |m|
+      @channel = m[:channel]
       today = Time.now.strftime("%Y-%m-%d")
-      @msgs = $redis.lrange("irclog:channel:##{channel}:#{today}", -25, -1)
-      @msgs = @msgs.map {|msg| JSON.parse(msg) }.reverse
-      @msgs = @msgs.select {|msg| msg["msg"][/^\[\S*\]\s.*/] }
+      @msgs = $redis.lrange("irclog:channel:##{channel}:#{today}", -25, -1).
+        map {|msg| JSON.parse(msg) }.
+          select {|msg| msg["msg"][/^\[\S*\]\s.*/] }.reverse
 
       erb :live
     end
@@ -168,10 +164,10 @@ module IRC_Log
 
       case type
         when "xml"
-          content_type :xml
+          headers_merge('Content-Type' => 'application/xml')
           erb :oembed
         else
-          content_type :json
+          headers_merge('Content-Type' => 'application/json')
           {
             :version       => "1.0",
             :type          => "link",
