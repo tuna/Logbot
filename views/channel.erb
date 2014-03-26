@@ -40,7 +40,7 @@
             <% @msgs.each_index do |i| %>
               <li id="<%= i %>">
                 <a class="time" href="<%= "#{@date}##{i}" %>" target="_self" title="<%= "##{i}" %>"><%= Time.at(@msgs[i]["time"].to_f).strftime("%T") %></a>
-                <a class="nick" href="<%= "#{@date}/#{i}" %>" target="_self" title="quote"><%= @msgs[i]["nick"] %></a>
+                <a class="nick" href="<%= "#{@date}/#{i}" %>" target="_self" title="<%= @msgs[i]["nick"] %>"><%= @msgs[i]["nick"] %></a>
                 <span class="msg wordwrap"><%= user_text(@msgs[i]["msg"]) %></span>
               </li>
             <% end %>
