@@ -1,0 +1,3 @@
+#!/bin/sh
+
+rainbows -N -p 15000 -c rainbows.rb config.ru

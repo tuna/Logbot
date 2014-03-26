@@ -1,0 +1,3 @@
+#!/bin/sh
+
+env LOGBOT_CHANNELS='#philohala,#philosohala,#kuansim,#g0v.tw,#fumao.tw,#fumao.word.live' LOGBOT_NICK=logbot jruby --server --2.0 logbot.rb.example

@@ -17,7 +17,7 @@
       </div>
       <div class="body">
         <div class="channel">#<%= @channel %></div>
-        
+
         <% given_date = Time.parse(@date) %>
         <select id="date-picker" class="date">
           <% if (Time.now - given_date > 86400 * 5) %>
@@ -34,15 +34,14 @@
         </select>
 
         <div class="scroll_switch">AUTO⬇ </div>
-       
+
         <div>
           <ul class="logs">
             <% @msgs.each_index do |i| %>
-              <% linked_msg = @msgs[i]["msg"].gsub(/&(?!nbsp;)/, '&amp;').gsub(/<(?!\/?span)/, '&lt;').gsub(/http[s]*:\/\/[^\s]+/, '<a href="\0">\0</a>') %>
               <li id="<%= i %>">
                 <a class="time" href="<%= "#{@date}##{i}" %>" target="_self" title="<%= "##{i}" %>"><%= Time.at(@msgs[i]["time"].to_f).strftime("%T") %></a>
                 <a class="nick" href="<%= "#{@date}/#{i}" %>" target="_self" title="<%= @msgs[i]["nick"] %>"><%= @msgs[i]["nick"] %></a>
-                <span class="msg wordwrap"><%= linked_msg %></span>
+                <span class="msg wordwrap"><%= user_text(@msgs[i]["msg"]) %></span>
               </li>
             <% end %>
           </ul>

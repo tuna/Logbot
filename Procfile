@@ -1,2 +1,2 @@
-web: shotgun -o 0.0.0.0 -p 15000 config.ru
-logbot: ruby logbot.rb
+web: rainbows -N -p 15000 -c /home/rails/logbot/rainbows.rb /home/rails/logbot/config.ru
+logbot: ruby /home/rails/logbot/logbot.rb
