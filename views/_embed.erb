@@ -1,7 +1,7 @@
 <blockquote class="logbot">
-  <p class="msg"><%= @msg %></p>
+  <p class="msg"><%= user_text(@msg) %></p>
   <footer>
-    <span class="nick"><%= @nick %></span>
-    <a class="time" href="<%= "/channel/#{@channel}/#{@date}##{@line}" %>" target="_self" title="<%= "##{@line}" %>"><%= Time.at(@time).strftime("%T") %></a>
+    <span class="nick"><%= user_nick(@msg) %></span>
+    <a class="time" href="<%= "/channel/#{@channel}/#{@date}##{@line}" %>" target="_self" title="<%= "##{@line}" %>"><%= Time.at(@msg['time'].to_f).strftime("%T") %></a>
   </footer>
 </blockquote>

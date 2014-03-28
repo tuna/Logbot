@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Logbot | #<%= @channel %> | <%= @nick %>&gt; <%= @msg %></title>
+    <title>Logbot | #<%= @channel %> | <%= user_nick(@msg) %>&gt; <%= user_text(@msg) %></title>
     <link rel="alternate" type="application/json+oembed"
       href="/oembed.json?url=<%= @url %>"
       title="<%= @title %>" />

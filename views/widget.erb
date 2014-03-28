@@ -14,12 +14,12 @@
       <div class="body">
         <div>
           <ul class="logs">
-            <% @msgs.each_index do |i| %>
+            <% @msgs.each.with_index do |m, i| %>
               <% index = @msgs.length - 1 - i %>
               <li id="<%= index %>">
-                <a class="time" href="<%= "##{index}" %>" target="_self" title="<%= "##{index}" %>"><%= Time.at(@msgs[i]["time"].to_f).strftime("%T") %></a>
-                <span class="nick"><%= @msgs[i]["nick"] %></span>
-                <span class="msg wordwrap"><%= user_text @msgs[i]["msg"] %></span>
+                <a class="time" href="<%= "##{index}" %>" target="_self" title="<%= "##{index}" %>"><%= Time.at(m["time"].to_f).strftime("%T") %></a>
+                <span class="nick"><%= user_nick(m) %></span>
+                <span class="msg wordwrap"><%= user_text(m) %></span>
               </li>
             <% end %>
           </ul>
