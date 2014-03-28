@@ -2,7 +2,7 @@
 <oembed>
   <version>1.0</version>
   <type>link</type>
-  <title>Logbot | #<%= @channel %> | <%= @nick %>&gt; <%= @msg %></title>
+  <title>Logbot | #<%= @channel %> | <%= @nick %>&gt; <%= escape(@msg) %></title>
   <author_name><%= @nick %></author_name>
   <provider_name>Logbot</provider_name>
   <provider_url><%= request.base_url %></provider_url>

@@ -42,8 +42,30 @@ module IRC_Log
         @views[path] ||= File.read("#{__dir__}/views/#{path}.erb")
       end
 
-      def user_text text
-        autolink(CGI.escape_html(text))
+      def action? msg
+        msg['msg'] =~ /^\u0001ACTION (.*)\u0001$/
+      end
+
+      def escape text
+        CGI.escape_html(text)
+      end
+
+      def user_nick msg
+        if action?(msg)
+          '*'
+        else
+          escape(msg['nick'])
+        end
+      end
+
+      def user_text msg
+        if action?(msg)
+          act  = escape(msg['msg'][/^\u0001ACTION (.*)\u0001$/, 1])
+          nick = escape(msg['nick'])
+          "<span class=\"nick\">#{nick}</span>&nbsp;#{act}"
+        else
+          autolink(escape(msg['msg']))
+        end
       end
 
       def autolink text
@@ -76,20 +98,13 @@ module IRC_Log
       @channel = m[:channel]
 
       @msgs = $redis.lrange("irclog:channel:##{@channel}:#{@date}", 0, -1).
-        map {|msg|
-          msg = JSON.parse(msg)
-          if msg["msg"] =~ /^\u0001ACTION (.*)\u0001$/
-            msg["msg"].gsub!(/^\u0001ACTION (.*)\u0001$/, "<span class=\"nick\">#{msg["nick"]}</span>&nbsp;\\1")
-            msg["nick"] = "*"
-          end
-          if m[:format] == 'json'
-            msg["time"] = Time.at(msg["time"].to_f).strftime("%F %T")
-          end
-          msg
-        }
+        map{ |msg| JSON.parse(msg) }
 
       if m[:format] == 'json'
         headers_merge('Content-Type' => 'application/json')
+        @msgs.each do |msg|
+          msg['time'] = Time.at(msg['time'].to_f).strftime('%F %T')
+        end
         @msgs.to_json
       else
         erb :channel
@@ -105,10 +120,7 @@ module IRC_Log
       if 0 > @line or @line >= msgs.length
         not_found
       end
-      msg = JSON.parse(msgs[@line])
-      @nick = msg["nick"]
-      @msg  = msg["msg"]
-      @time = msg["time"].to_f
+      @msg  = JSON.parse(msgs[@line])
       @url = CGI.escape(request.url)
 
       erb :quote
@@ -117,7 +129,7 @@ module IRC_Log
     get %r{^/live/#{CHANNEL}$} do |m|
       @channel = m[:channel]
       today = Time.now.strftime("%Y-%m-%d")
-      @msgs = $redis.lrange("irclog:channel:##{channel}:#{today}", -25, -1).
+      @msgs = $redis.lrange("irclog:channel:##{@channel}:#{today}", -25, -1).
         map {|msg| JSON.parse(msg) }.
           select {|msg| msg["msg"][/^\[\S*\]\s.*/] }.reverse
 

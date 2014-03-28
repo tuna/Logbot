@@ -37,11 +37,11 @@
 
         <div>
           <ul class="logs">
-            <% @msgs.each_index do |i| %>
+            <% @msgs.each.with_index do |m, i| %>
               <li id="<%= i %>">
-                <a class="time" href="<%= "#{@date}##{i}" %>" target="_self" title="<%= "##{i}" %>"><%= Time.at(@msgs[i]["time"].to_f).strftime("%T") %></a>
-                <a class="nick" href="<%= "#{@date}/#{i}" %>" target="_self" title="<%= @msgs[i]["nick"] %>"><%= @msgs[i]["nick"] %></a>
-                <span class="msg wordwrap"><%= user_text(@msgs[i]["msg"]) %></span>
+                <a class="time" href="<%= "#{@date}##{i}" %>" target="_self" title="<%= "##{i}" %>"><%= Time.at(m['time'].to_f).strftime('%T') %></a>
+                <a class="nick" href="<%= "#{@date}/#{i}" %>" target="_self" title="<%= user_nick(m) %>"><%= user_nick(m) %></a>
+                <span class="msg wordwrap"><%= user_text(m) %></span>
               </li>
             <% end %>
           </ul>
