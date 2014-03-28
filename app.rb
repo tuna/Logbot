@@ -117,7 +117,7 @@ module IRC_Log
     get %r{^/live/#{CHANNEL}$} do |m|
       @channel = m[:channel]
       today = Time.now.strftime("%Y-%m-%d")
-      @msgs = $redis.lrange("irclog:channel:##{channel}:#{today}", -25, -1).
+      @msgs = $redis.lrange("irclog:channel:##{@channel}:#{today}", -25, -1).
         map {|msg| JSON.parse(msg) }.
           select {|msg| msg["msg"][/^\[\S*\]\s.*/] }.reverse
 
