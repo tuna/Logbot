@@ -60,16 +60,16 @@ module IRC_Log
         @views[path] ||= File.read("#{__dir__}/views/#{path}.erb")
       end
 
-      def action? msg
-        msg['msg'] =~ /^\u0001ACTION (.*)\u0001$/
-      end
-
       def escape text
         CGI.escape_html(text)
       end
 
+      def user_action msg
+        msg['msg'][/^\u0001ACTION (.*)\u0001$/, 1]
+      end
+
       def user_nick msg
-        if action?(msg)
+        if user_action(msg)
           '*'
         else
           escape(msg['nick'])
@@ -77,12 +77,19 @@ module IRC_Log
       end
 
       def user_text msg
-        if action?(msg)
-          act  = escape(msg['msg'][/^\u0001ACTION (.*)\u0001$/, 1])
-          nick = escape(msg['nick'])
-          "<span class=\"nick\">#{nick}</span>&nbsp;#{act}"
+        if act = user_action(msg)
+          "<span class=\"nick\">#{escape(msg['nick'])}</span>" \
+          "&nbsp;#{escape(act)}"
         else
           autolink(escape(msg['msg']))
+        end
+      end
+
+      def user_text_without_tags msg
+        if act = user_action(msg)
+          "*#{escape(act)}*"
+        else
+          escape(msg['msg'])
         end
       end
 
@@ -166,7 +173,7 @@ module IRC_Log
       msg      = Message.lrange(@channel, @date, line, line).first
       not_found unless msg
       @nick    = msg['nick']
-      @msg     = msg['msg']
+      @msg     = user_text_without_tags(msg)
 
       case m[:type]
         when "xml"
