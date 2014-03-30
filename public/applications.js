@@ -30,12 +30,11 @@ var pollNewMsg = function(isWidget) {
 	if (seenTimestamp[msg.time]) { continue; }
 	seenTimestamp[msg.time] = true;
         var date = new Date(parseFloat(msg["time"]) * 1000);
-        var linkedMsg = msg["msg"].replace(/(http[s]*:\/\/[^\s]+)/, '<a href="$1">$1</a>');
         var $lis = $(".logs > li");
         var msgElement = $("<li id=\"" + $lis.length + "\">").addClass("new-arrival")
           .append($("<a class=\"time\" href=\"" + $("#today").text() + "#" + $lis.length + "\" target=\"_self\" title=\"#" + $lis.length + "\">").text(strftime(date))) // $("#today").text() gets nothing automatically when isWidget
           .append($("<span class=\"nick\">").text(msg["nick"]))
-          .append($("<span class=\"msg wordwrap\">").html(linkedMsg));
+          .append($("<span class=\"msg wordwrap\">").html(msg["msg"]));
         if (isWidget) {
           $(".logs").prepend(msgElement);
         }

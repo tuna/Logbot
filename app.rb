@@ -46,69 +46,78 @@ module Message
   end
 end
 
+module Util
+  def erb path
+    ERB.new(views(path)).result(binding)
+  end
+
+  def views path
+    @views ||= {}
+    @views[path] ||= File.read("#{__dir__}/views/#{path}.erb")
+  end
+
+  def escape text
+    CGI.escape_html(text)
+  end
+
+  def user_action msg
+    msg['msg'][/^\u0001ACTION (.*)\u0001$/, 1]
+  end
+
+  def user_nick msg
+    if user_action(msg)
+      '*'
+    else
+      escape(msg['nick'])
+    end
+  end
+
+  def user_text msg
+    if act = user_action(msg)
+      "<span class=\"nick\">#{escape(msg['nick'])}</span>" \
+      "&nbsp;#{escape(act)}"
+    else
+      autolink(escape(msg['msg']))
+    end
+  end
+
+  def user_text_without_tags msg
+    if act = user_action(msg)
+      "*#{escape(act)}*"
+    else
+      escape(msg['msg'])
+    end
+  end
+
+  def autolink text
+    text.gsub(%r{https?://\S+\b}, '<a href="\0">\0</a>')
+  end
+
+  def date m
+    case m[:date]
+    when "today"
+      Time.now.strftime("%F")
+    when "yesterday"
+      (Time.now - 86400).strftime("%F")
+    else
+      # date in "%Y-%m-%d" format (e.g. 2013-01-01)
+      m[:date]
+    end
+  end
+
+  def render_json msgs
+    msgs.each do |m|
+      m['nick'] = user_nick(m)
+      m['msg' ] = user_text(m)
+    end
+    msgs.to_json
+  end
+end
+
 module IRC_Log
   class App
     include Jellyfish, Routes
-
-    controller_include Module.new{
-      def erb path
-        ERB.new(views(path)).result(binding)
-      end
-
-      def views path
-        @views ||= {}
-        @views[path] ||= File.read("#{__dir__}/views/#{path}.erb")
-      end
-
-      def escape text
-        CGI.escape_html(text)
-      end
-
-      def user_action msg
-        msg['msg'][/^\u0001ACTION (.*)\u0001$/, 1]
-      end
-
-      def user_nick msg
-        if user_action(msg)
-          '*'
-        else
-          escape(msg['nick'])
-        end
-      end
-
-      def user_text msg
-        if act = user_action(msg)
-          "<span class=\"nick\">#{escape(msg['nick'])}</span>" \
-          "&nbsp;#{escape(act)}"
-        else
-          autolink(escape(msg['msg']))
-        end
-      end
-
-      def user_text_without_tags msg
-        if act = user_action(msg)
-          "*#{escape(act)}*"
-        else
-          escape(msg['msg'])
-        end
-      end
-
-      def autolink text
-        text.gsub(%r{https?://\S+\b}, '<a href="\0">\0</a>')
-      end
-
-      def date m
-        case m[:date]
-        when "today"
-          Time.now.strftime("%F")
-        when "yesterday"
-          (Time.now - 86400).strftime("%F")
-        else
-          # date in "%Y-%m-%d" format (e.g. 2013-01-01)
-          m[:date]
-        end
-      end
-    }
+    controller_include Util
 
     get %r{^/?$} do
       redirect "/channel/g0v.tw/today"
@@ -125,10 +134,7 @@ module IRC_Log
 
       if m[:format] == 'json'
         headers_merge('Content-Type' => 'application/json; charset=utf-8')
-        @msgs.each do |msg|
-          msg['time'] = Time.at(msg['time'].to_f).strftime('%F %T')
-        end
-        @msgs.to_json
+        render_json(@msgs)
       else
         erb :channel
       end
@@ -198,43 +204,31 @@ end
 module Comet
   class App
     include Jellyfish, Routes
-
-    controller_include Module.new{
-      def fetch_messages channel, date
-        Message.last(channel, date, 10)
-      end
-
-      def extract_if messages, time
-        if not messages.empty? and messages[-1]["time"] > time
-          extract(messages, time)
+    controller_include Util, Module.new{
+      def fetch_messages channel, date, time
+        msgs = Message.last(channel, date, 10)
+        if not msgs.empty? and msgs.last['time'] > time
+          msgs[msgs.index{ |m| m['time'] > time }..-1]
         end
       end
 
-      def extract messages, time
-        messages.select{ |msg| msg["time"] > time }.to_json
+      def poll channel, date, time
+        # we simply block here because we're in a threaded server anyway
+        (0...120).find do
+          sleep(0.5)
+          msgs = fetch_messages(channel, date, time)
+          break msgs if msgs
+        end
       end
     }
 
     get %r{^/?poll/#{CHANNEL}/#{TIME}/updates\.json$} do |m|
       channel, time = m[:channel], m[:time]
       date = Time.at(time.to_f).strftime("%Y-%m-%d")
-      msgs = fetch_messages(channel, date)
-      json = extract_if(msgs, time)
-      next json if json
 
-      # we simply block here because we're in a threaded server anyway
-      n = 0
-      loop do
-        sleep 0.5
-        msgs = fetch_messages(channel, date)
-        if n <= 120 && json = extract_if(msgs, time)
-          break json
-        elsif n <= 120
-          n += 1
-        else
-          break extract(msgs, time)
-        end
-      end
+      render_json(fetch_messages(channel, date, time) ||
+                  poll(channel, date, time)           ||
+                  [])
     end
   end
 end
