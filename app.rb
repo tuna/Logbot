@@ -132,7 +132,7 @@ module IRC_Log
       @channel = m[:channel]
       @line    = m[:line].to_i
       not_found if @line < 0
-      @msg     = Message.lrange(@channel, @date, @line, @line)
+      @msg     = Message.lrange(@channel, @date, @line, @line).first
       not_found unless @msg
       @url     = CGI.escape(request.url)
 
@@ -163,7 +163,7 @@ module IRC_Log
       @date    = date(match)
       line     = match[:line].to_i
       not_found if line < 0
-      msg      = Message.lrange(@channel, @date, line, line)
+      msg      = Message.lrange(@channel, @date, line, line).first
       not_found unless msg
       @nick    = msg['nick']
       @msg     = msg['msg']
