@@ -18,14 +18,32 @@ unless respond_to?(:__dir__, true)
   end
 end
 
-$redis = Redis.new(:thread_safe => true)
-
 module Routes
   CHANNEL = '(?<channel>[\w\.]+)'
   DATE    = '(?<date>[\w\-]+)'
   TIME    = '(?<time>[\d\.]+)'
   FORMAT  = '(?<format>[A-Za-z]+)'
   LINE    = '(?<line>\d+)'
+end
+
+module Message
+  module_function
+  def redis
+    @redis ||= Redis.new(:thread_safe => true)
+  end
+
+  def lrange channel, date, start, stop
+    redis.lrange("irclog:channel:##{channel}:#{date}", start, stop).
+      map{ |msg| JSON.parse(msg) }
+  end
+
+  def last channel, date, numbers
+    lrange(channel, date, -numbers, -1)
+  end
+
+  def all channel, date
+    lrange(channel, date, 0, -1)
+  end
 end
 
 module IRC_Log
@@ -96,9 +114,7 @@ module IRC_Log
     get %r{^/?channel/#{CHANNEL}/#{DATE}(/#{FORMAT})?$} do |m|
       @date    = date(m)
       @channel = m[:channel]
-
-      @msgs = $redis.lrange("irclog:channel:##{@channel}:#{@date}", 0, -1).
-        map{ |msg| JSON.parse(msg) }
+      @msgs    = Message.all(@channel, @date)
 
       if m[:format] == 'json'
         headers_merge('Content-Type' => 'application/json')
@@ -115,32 +131,26 @@ module IRC_Log
       @date    = date(m)
       @channel = m[:channel]
       @line    = m[:line].to_i
-
-      msgs = $redis.lrange("irclog:channel:##{@channel}:#{@date}", 0, -1)
-      if 0 > @line or @line >= msgs.length
-        not_found
-      end
-      @msg  = JSON.parse(msgs[@line])
-      @url = CGI.escape(request.url)
+      not_found if @line < 0
+      @msg     = Message.lrange(@channel, @date, @line, @line)
+      not_found unless @msg
+      @url     = CGI.escape(request.url)
 
       erb :quote
     end
 
-    get %r{^/live/#{CHANNEL}$} do |m|
+    get %r{^/?live/#{CHANNEL}$} do |m|
       @channel = m[:channel]
-      today = Time.now.strftime("%Y-%m-%d")
-      @msgs = $redis.lrange("irclog:channel:##{@channel}:#{today}", -25, -1).
-        map {|msg| JSON.parse(msg) }.
-          select {|msg| msg["msg"][/^\[\S*\]\s.*/] }.reverse
+      @msgs    = Message.last(@channel, Time.now.strftime('%Y-%m-%d'), 25).
+                   select{ |msg| msg['msg'][/^\[\S*\]\s.*/] }.reverse
 
       erb :live
     end
 
     get %r{^/?widget/#{CHANNEL}$} do |m|
       @channel = m[:channel]
-      today = Time.now.strftime("%Y-%m-%d")
-      @msgs = $redis.lrange("irclog:channel:##{@channel}:#{today}", -25, -1).
-        map {|msg| JSON.parse(msg) }.reverse
+      @msgs    = Message.last(@channel, Time.now.strftime('%Y-%m-%d'), 25).
+                   reverse
 
       erb :widget
     end
@@ -152,15 +162,11 @@ module IRC_Log
       @channel = match[:channel]
       @date    = date(match)
       line     = match[:line].to_i
-
-      msgs = $redis.lrange("irclog:channel:##{@channel}:#{@date}", 0, -1)
-      if 0 > line or line >= msgs.length
-        not_found
-      end
-      msg = JSON.parse(msgs[line])
-
-      @nick = msg["nick"]
-      @msg = msg["msg"]
+      not_found if line < 0
+      msg      = Message.lrange(@channel, @date, line, line)
+      not_found unless msg
+      @nick    = msg['nick']
+      @msg     = msg['msg']
 
       case m[:type]
         when "xml"
@@ -188,8 +194,7 @@ module Comet
 
     controller_include Module.new{
       def fetch_messages channel, date
-        $redis.lrange("irclog:channel:##{channel}:#{date}", -10, -1).
-          map{ |msg| ::JSON.parse(msg) }
+        Message.last(channel, date, 10)
       end
 
       def extract_if messages, time
