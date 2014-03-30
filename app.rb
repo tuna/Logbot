@@ -107,8 +107,7 @@ module Util
 
   def render_json msgs
     msgs.each do |m|
-      m['nick'] = user_nick(m)
-      m['msg' ] = user_text(m)
+      m['nick'], m['msg'] = user_nick(m), user_text(m)
     end
     msgs.to_json
   end
