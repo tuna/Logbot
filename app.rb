@@ -124,7 +124,7 @@ module IRC_Log
       @msgs    = Message.all(@channel, @date)
 
       if m[:format] == 'json'
-        headers_merge('Content-Type' => 'application/json')
+        headers_merge('Content-Type' => 'application/json; charset=utf-8')
         @msgs.each do |msg|
           msg['time'] = Time.at(msg['time'].to_f).strftime('%F %T')
         end
@@ -177,10 +177,10 @@ module IRC_Log
 
       case m[:type]
         when "xml"
-          headers_merge('Content-Type' => 'application/xml')
+          headers_merge('Content-Type' => 'application/xml; charset=utf-8')
           erb :oembed
         else
-          headers_merge('Content-Type' => 'application/json')
+          headers_merge('Content-Type' => 'application/json; charset=utf-8')
           {
             :version       => "1.0",
             :type          => "link",
