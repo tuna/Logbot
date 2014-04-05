@@ -10,6 +10,10 @@ var strftime = function(date) {
   return hour + ":" + min + ":" + sec;
 };
 
+var link = function(klass, href, title) {
+  return $('<a class="' + klass + '" href="' + href
+    + '" target="_self" title="' + title + '">');
+};
 
 var lastTimestamp = undefined;
 var seenTimestamp = {};
@@ -30,10 +34,14 @@ var pollNewMsg = function(isWidget) {
         if (seenTimestamp[msg.time]) { continue; }
         seenTimestamp[msg.time] = true;
         var date = new Date(parseFloat(msg["time"]) * 1000);
-        var $lis = $(".logs > li");
-        var msgElement = $("<li id=\"" + $lis.length + "\">").addClass("new-arrival")
-          .append($("<a class=\"time\" href=\"" + $("#today").text() + "#" + $lis.length + "\" target=\"_self\" title=\"#" + $lis.length + "\">").text(strftime(date))) // $("#today").text() gets nothing automatically when isWidget
-          .append($("<span class=\"nick\">").text(msg["nick"]))
+        var lis  = $(".logs > li").length;
+        var url  = $("#today").text();
+        // $("#today").text() gets nothing automatically when isWidget
+        var msgElement = $("<li id=\"" + lis + "\">").addClass("new-arrival")
+          .append(link('time', url + '#' + lis, '#' + lis)
+                    .text(strftime(date)))
+          .append(link('nick', url + '/' + lis, msg['nick'])
+                    .text(msg['nick']))
           .append($("<span class=\"msg wordwrap\">").html(msg["msg"]));
         if (isWidget) {
           $(".logs").prepend(msgElement);
