@@ -15,6 +15,7 @@ bot = Cinch::Bot.new do
     conf.server = ENV['LOGBOT_SERVER'] || 'irc.freenode.net'
     conf.nick   = ENV['LOGBOT_NICK']   || 'logbot_'
     conf.channels = channels
+    conf.encoding = 'UTF-8'
   end
 
   on :message do |msg|
