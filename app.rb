@@ -90,7 +90,7 @@ module Util
   end
 
   def autolink text
-    text.gsub(%r{https?://\S+\b}, '<a href="\0">\0</a>')
+    text.gsub(%r{https?://\S+\b/?}, '<a href="\0">\0</a>')
   end
 
   def date m
