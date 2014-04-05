@@ -27,8 +27,8 @@ var pollNewMsg = function(isWidget) {
       var msgs = JSON.parse(data || '[]');
       for (var i = 0; i < msgs.length; i++) {
         var msg = msgs[i];
-	if (seenTimestamp[msg.time]) { continue; }
-	seenTimestamp[msg.time] = true;
+        if (seenTimestamp[msg.time]) { continue; }
+        seenTimestamp[msg.time] = true;
         var date = new Date(parseFloat(msg["time"]) * 1000);
         var $lis = $(".logs > li");
         var msgElement = $("<li id=\"" + $lis.length + "\">").addClass("new-arrival")
