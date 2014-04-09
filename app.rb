@@ -75,7 +75,7 @@ module Util
   def user_text msg
     if act = user_action(msg)
       "<span class=\"nick\">#{escape(msg['nick'])}</span>" \
-      "&nbsp;#{escape(act)}"
+      "&nbsp;#{autolink(escape(act))}"
     else
       autolink(escape(msg['msg']))
     end
