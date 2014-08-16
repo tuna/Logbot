@@ -1,3 +1,13 @@
+(function(){
+  $.getScript("https://raw.githubusercontent.com/blueimp/JavaScript-MD5/master/js/md5.min.js" ,function(){
+    $("ul.logs li").each(function(){
+      var nickField = $(this).children(".nick");
+      var colorCode = parseInt(md5(nickField.text()).substring(0,6),16) & 0x7F7F7F;
+      nickField.css("color","#"+(colorCode < 0x100000 ? '0' : '')+colorCode.toString(16));
+    })
+  });	
+})()
+
 var strftime = function(date) {
   var hour = date.getHours(),
       min  = date.getMinutes(),
@@ -36,12 +46,14 @@ var pollNewMsg = function(isWidget) {
         var date = new Date(parseFloat(msg["time"]) * 1000);
         var lis  = $(".logs > li").length;
         var url  = $("#today").text();
+        var colorCode = parseInt(md5(msg["nick"]).substring(0,6),16) & 0x7F7F7F;
         // $("#today").text() gets nothing automatically when isWidget
         var msgElement = $("<li id=\"" + lis + "\">").addClass("new-arrival")
           .append(link('time', url + '#' + lis, '#' + lis)
                     .text(strftime(date)))
           .append(link('nick', url + '/' + lis, msg['nick'])
-                    .text(msg['nick']))
+                    .text(msg['nick'])
+                    .css("color",'#'+(colorCode < 0x100000 ? '0' : '')+colorCode.toString(16)))
           .append($("<span class=\"msg wordwrap\">").html(msg["msg"]));
         if (isWidget) {
           $(".logs").prepend(msgElement);
