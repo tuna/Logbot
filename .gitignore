@@ -1,5 +1,6 @@
 .swp
 /public/*.css
+/public/md5.min.js
 .sass-cache
 .DS_Store
 /fire_app_log.txt

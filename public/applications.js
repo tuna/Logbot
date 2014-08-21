@@ -1,11 +1,11 @@
 (function(){
-  $.getScript("https://raw.githubusercontent.com/blueimp/JavaScript-MD5/1.1.0/js/md5.min.js" ,function(){
+  setTimeout(function(){
     $("ul.logs li").each(function(){
       var nickField = $(this).children(".nick");
       var colorCode = parseInt(md5(nickField.text()).substring(0,6),16) & 0x7F7F7F;
       nickField.css("color","#"+(colorCode < 0x100000 ? '0' : '')+colorCode.toString(16));
     })
-  });	
+  }, 100);	
 })()
 
 var strftime = function(date) {
