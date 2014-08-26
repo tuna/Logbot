@@ -2,7 +2,11 @@
   setTimeout(function(){
     $("ul.logs li").each(function(){
       var nickField = $(this).children(".nick");
-      var colorCode = parseInt(md5(nickField.text()).substring(0,6),16) & 0x7F7F7F;
+
+    var frag = parseInt(md5(nickField.text()).substring(0,6), 16);
+    
+    var colorCode = (frag | 0x808080) & 0xdfdfdf;
+      
       nickField.css("color","#"+(colorCode < 0x100000 ? '0' : '')+colorCode.toString(16));
     })
   }, 100);	
@@ -46,7 +50,8 @@ var pollNewMsg = function(isWidget) {
         var date = new Date(parseFloat(msg["time"]) * 1000);
         var lis  = $(".logs > li").length;
         var url  = $("#today").text();
-        var colorCode = parseInt(md5(msg["nick"]).substring(0,6),16) & 0x7F7F7F;
+        var frag = parseInt(md5(msg['nick']).substring(0,6), 16);
+        var colorCode = (frag | 0x808080) & 0xdfdfdf;
         // $("#today").text() gets nothing automatically when isWidget
         var msgElement = $("<li id=\"" + lis + "\">").addClass("new-arrival")
           .append(link('time', url + '#' + lis, '#' + lis)
