@@ -290,7 +290,7 @@ var pollNewMsg = function(isWidget) {
                     .text(strftime(date)))
           .append(link('nick', url + '/' + lis, msg['nick'])
                     .text(msg['nick'])
-                    .css("color",getColor(msg['nick']))
+                    .css("color",getColor(msg['nick'])))
           .append($("<span class=\"msg wordwrap\">").html(msg["msg"]).each(function(){
             $(this).html(
               parseColor($(this).html())
