@@ -176,8 +176,8 @@ var parseColor = function() {
             }
             return true;
           });
-          console.log(JSON.stringify(text));
-          console.log(JSON.stringify(stylefrag));
+          //console.log(JSON.stringify(text));
+          //console.log(JSON.stringify(stylefrag));
           //insert styles into list and remove parsed tag
           temp.splice(i, 1, styles);
         }
