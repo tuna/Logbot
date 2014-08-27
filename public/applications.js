@@ -205,15 +205,38 @@ var parseColor = function() {
     return parseColor_;
 } ();
 
+var getColor = function() {
+  var cache = {};
+  function getColor_(str) {
+    if (cache[str]) {
+      return cache[str];
+    }
+    
+    if (typeof md5 !== "undefined") {
+      var frag = parseInt(md5(str).substring(0,6), 16);
+    } else {
+      var frag = Math.floor(Math.random() * 0xffffff);
+      console.log('missing md5 support, using random color now!')
+    }
+    
+    var h = Math.floor((frag & 0xff0000 >> 16) / 255 * 360);
+    var s = Math.floor((frag & 0xff00 >> 8) / 255 * 60 + 20);
+    var l = Math.floor((frag & 0xff) / 255 * 20 + 50);
+    
+    //convert color with jQuery
+    var colorCode = $('<span></span>').css("color", "hsl(" + h + "," + s + "%," + l +"%)").css("color");
+    
+    cache[str] = colorCode;
+    return colorCode;
+  }
+  return getColor_;
+}();
 
 setTimeout(function(){
   $("ul.logs li").each(function(){
     var nickField = $(this).children(".nick");
     
-    var frag = parseInt(md5(nickField.text()).substring(0,6), 16);
-    
-    var colorCode = (frag | 0x808080) & 0xdfdfdf;
-    nickField.css("color","#"+(colorCode < 0x100000 ? '0' : '')+colorCode.toString(16));
+    nickField.css("color",getColor(nickField.text()));
   });
   $(".wordwrap").each(function(){
     $(this).html(
@@ -260,16 +283,14 @@ var pollNewMsg = function(isWidget) {
         var date = new Date(parseFloat(msg["time"]) * 1000);
         var lis  = $(".logs > li").length;
         var url  = $("#today").text();
-        var frag = parseInt(md5(msg['nick']).substring(0,6), 16);
-    
-        var colorCode = (frag | 0x808080) & 0xdfdfdf;
+        
         // $("#today").text() gets nothing automatically when isWidget
         var msgElement = $("<li id=\"" + lis + "\">").addClass("new-arrival")
           .append(link('time', url + '#' + lis, '#' + lis)
                     .text(strftime(date)))
           .append(link('nick', url + '/' + lis, msg['nick'])
                     .text(msg['nick'])
-                    .css("color",'#'+(colorCode < 0x100000 ? '0' : '')+colorCode.toString(16)))
+                    .css("color",getColor(msg['nick']))
           .append($("<span class=\"msg wordwrap\">").html(msg["msg"]).each(function(){
             $(this).html(
               parseColor($(this).html())
