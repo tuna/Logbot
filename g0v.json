@@ -6,7 +6,7 @@
   "description": "Simple IRC logger with realtime web-based viewer",
   "description_zh": "會即時更新的簡易 IRC 記錄",
   "homepage": "http://logbot.g0v.tw/",
-  "thumbnail": "http://i.imgur.com/DnWVNcT.png",
+  "thumbnail": "https://raw.github.com/g0v/Logbot/master/screenshot-1.png",
   "repository": "git@github.com:g0v/Logbot.git",
   "license": "MIT",
   "keywords": [

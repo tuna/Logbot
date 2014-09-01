@@ -5,7 +5,7 @@ Logbot is a simple IRC logger with realtime web-based viewer.
 
 Screenshot
 ----------
-![Logbot screnshot](https://raw.github.com/Dannvix/Logbot/master/screenshot.png)
+![Logbot screenshot](https://raw.github.com/g0v/Logbot/master/screenshot-1.png)
 
 
 How to Deploy
