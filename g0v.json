@@ -36,5 +36,9 @@
     "miaout17",
     "yhsiang",
     "MnO2"
+  ],
+  "needs": [
+    "designer",
+    "programmer"
   ]
 }
