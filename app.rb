@@ -19,7 +19,7 @@ unless respond_to?(:__dir__, true)
 end
 
 module Routes
-  CHANNEL = '(?<channel>[\w\.]+)'
+  CHANNEL = '(?<channel>[\w\-\.]+)'
   DATE    = '(?<date>[\w\-]+)'
   TIME    = '(?<time>[\d\.]+)'
   FORMAT  = '(?<format>[A-Za-z]+)'
