@@ -14,10 +14,9 @@ How to Deploy
 2. Type `bundle install` to install required Ruby gems
 3. Type `compass compile` to compile Sass files
 4. Fire up your `redis-server`
-5. Specify target channels and server in `logbot.rb`
-6. Edit absolute paths in `Procfile`
-7. Type `foreman start` to launch web server (WEBrick) and Logbot agent
-8. Visit [http://localhost:15000](http://localhost:15000).
+5. Specify target channels in `logbot.rb`
+6. Type `foreman start` to launch web server (WEBrick) and Logbot agent
+7. Visit [http://localhost:15000](http://localhost:15000).
 
 
 How to Contribute
