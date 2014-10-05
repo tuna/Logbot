@@ -342,6 +342,8 @@ setTimeout(function(){
 }
 
 var enableDatePicker = function() {
+  var useJqueryUIDatePicker = !Modernizr.inputtypes.date;
+  
   $('#date-picker').on('change', function(event) {
     var targetDate = this.value;
     if (targetDate !== 'other') {
@@ -357,9 +359,11 @@ var enableDatePicker = function() {
     width:360,
     modal: true,
     open: function (event, ui) {
-      if ($(".ui-datepicker").is(":visible")) {
-        $( "#other-date-picker" ).datepicker( "hide" );
-        $( "#other-date-picker" ).blur().trigger('blur');
+      if (useJqueryUIDatePicker) {
+        if ($( ".ui-datepicker" ).is( ":visible" )) {
+          $( "#other-date-picker" ).datepicker( "disable" );
+        }
+        $( "#other-date-picker" ).datepicker( "enable" );
       }
       $( "#other-date-picker" ).val( currentDay );
     },
@@ -368,12 +372,18 @@ var enableDatePicker = function() {
         $( this ).dialog( "close" );
       },
       "go": function() {
-        var targetDate = $("#other-date-picker").val();
+        $( this ).dialog( "close" );
+        var targetDate = $( "#other-date-picker" ).val();
         location.href = location.href.replace(/[^\/]+$/, targetDate);
       }
     },
     beforeClose: function() {
-      $( "#date-picker" ).val( currentDay );
+      $( "#other-date-picker" ).datepicker("disable");
+      if ($("#today").text() === currentDay) {
+        $( "#date-picker" ).val( "today" );
+      } else {
+        $( "#date-picker" ).val( currentDay );
+      }
     }
   });
   $( "#other-date-picker" ).on ( "keydown", function(e) {
@@ -385,20 +395,41 @@ var enableDatePicker = function() {
       location.href = location.href.replace(/[^\/]+$/, targetDate);
     }
   });
-}
+  
+  var enableJqueryUIDatePicker = function() {
+    var $input = $( "#other-date-picker" );
+    /**
+    IE sucks
+    http://stackoverflow.com/questions/13010463/avoid-reopen-datepicker-after-select-a-date
+    */
+    $( "#other-date-picker" ).datepicker({
+      fixFocusIE: false,    
+      onSelect: function(dateText, inst) {
+        this.fixFocusIE = true
+        $(this).change().focus();
+      },
+      onClose: function(dateText, inst) {
+        this.fixFocusIE = true;
+        this.focus();
+      },
+      beforeShow: function(input, inst) {
+        var result = $.browser.msie ? !this.fixFocusIE : true;
+        this.fixFocusIE = false;
+        return result;
+      }
+    });
+    $( "#other-date-picker" ).datepicker( "option", "dateFormat", "yy-mm-dd");
+    $( "#other-date-picker" ).datepicker( "option", "maxDate", today );
+    $( "#other-date-picker" ).datepicker( "option", "showAnim", "" );
+    $( "#other-date-picker" ).datepicker("disable");
+  }
 
-var enableJqueryUIDatePicker = function() {
-  $( "#other-date-picker" ).datepicker();
-  $( "#other-date-picker" ).datepicker( "option", "dateFormat", "yy-mm-dd");
-  $( "#other-date-picker" ).datepicker( "option", "maxDate", today );
-  $( "#other-date-picker" ).datepicker( "option", "showAnim", "" );
+  if (useJqueryUIDatePicker) {
+    enableJqueryUIDatePicker();
+  }
 }
 
 enableDatePicker();
-
-if (!Modernizr.inputtypes.date) {
-    enableJqueryUIDatePicker();
-}
 
 $(".scroll_switch").click(function() {
   window.can_scroll = $(".scroll_switch").hasClass("scroll_switch_off");
