@@ -344,10 +344,61 @@ setTimeout(function(){
 var enableDatePicker = function() {
   $('#date-picker').on('change', function(event) {
     var targetDate = this.value;
-    location.href = location.href.replace(/[^\/]+$/, targetDate);
-  })
+    if (targetDate !== 'other') {
+      location.href = location.href.replace(/[^\/]+$/, targetDate);
+    } else {
+      $( "#other-date-dialog" ).dialog( "open" );
+    }
+  });
+  $( "#other-date-dialog" ).dialog({
+    autoOpen: false,
+    resizable: false,
+    height:280,
+    width:360,
+    modal: true,
+    open: function (event, ui) {
+      if ($(".ui-datepicker").is(":visible")) {
+        $( "#other-date-picker" ).datepicker( "hide" );
+        $( "#other-date-picker" ).blur().trigger('blur');
+      }
+      $( "#other-date-picker" ).val( currentDay );
+    },
+    buttons: {
+      "cancel": function() {
+        $( this ).dialog( "close" );
+      },
+      "go": function() {
+        var targetDate = $("#other-date-picker").val();
+        location.href = location.href.replace(/[^\/]+$/, targetDate);
+      }
+    },
+    beforeClose: function() {
+      $( "#date-picker" ).val( currentDay );
+    }
+  });
+  $( "#other-date-picker" ).on ( "keydown", function(e) {
+    $( "#other-date-picker" ).datepicker( "hide" );
+    if(e.which == 13) {
+      $( "#other-date-dialog" ).dialog( "close" );
+      $( "#date-picker" ).val( currentDay );
+      var targetDate = $("#other-date-picker").val();
+      location.href = location.href.replace(/[^\/]+$/, targetDate);
+    }
+  });
 }
+
+var enableJqueryUIDatePicker = function() {
+  $( "#other-date-picker" ).datepicker();
+  $( "#other-date-picker" ).datepicker( "option", "dateFormat", "yy-mm-dd");
+  $( "#other-date-picker" ).datepicker( "option", "maxDate", today );
+  $( "#other-date-picker" ).datepicker( "option", "showAnim", "" );
+}
+
 enableDatePicker();
+
+if (!Modernizr.inputtypes.date) {
+    enableJqueryUIDatePicker();
+}
 
 $(".scroll_switch").click(function() {
   window.can_scroll = $(".scroll_switch").hasClass("scroll_switch_off");

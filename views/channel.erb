@@ -31,6 +31,9 @@
               <option value="<%= date %>" <%= "selected" if @date == date %>><%= date %></option>
             <% end %>
           </optgroup>
+          <optgroup label="Other">
+            <option value="other">select..</option>
+          </optgroup>
         </select>
 
         <div class="scroll_switch">AUTO⬇ </div>
@@ -49,12 +52,24 @@
       </div>
       <%= erb :_footer %>
     </div>
+    <div id="other-date-dialog" title="Select date...">
+      <p>
+        Date: <br/>
+        <input type="date" style="max-width:300px;" max="<%= Date.today.to_s %>" id="other-date-picker" size="30" value="<%= @date %>">
+      </p>
+    </div>
     <script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css">
+    <script src="http://ajax.aspnetcdn.com/ajax/modernizr/modernizr-2.7.2.js"></script>
     <script>
       var channel = "<%= @channel %>";
+      var currentDay = "<%= @date %>";
+      var today = "<%= Date.today.to_s %>";
+      $( "#date-picker" ).val( currentDay );
     </script>
     <script src="/assets/applications.js?"></script>
-    <script src="/assets/md5.min.js?"></script>
+    <script src="/assets/md5.min.js"></script>
     <% if @date == Date.today.to_s %>
       <script>pollNewMsg();</script>
     <% end %>
