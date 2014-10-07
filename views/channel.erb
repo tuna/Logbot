@@ -65,7 +65,7 @@
     <script>
       var channel = "<%= @channel %>";
       var currentDay = "<%= @date %>";
-      var today = "<%= Date.today.to_s %>";
+      var today = "<%= Date.today %>";
       //sometimes browser remember last chosen option and cause strange result
       if ($("#today").text() === currentDay) {
         $( "#date-picker" ).val( "today" );
