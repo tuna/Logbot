@@ -342,11 +342,93 @@ setTimeout(function(){
 }
 
 var enableDatePicker = function() {
+  var useJqueryUIDatePicker = !Modernizr.inputtypes.date;
+  
   $('#date-picker').on('change', function(event) {
     var targetDate = this.value;
-    location.href = location.href.replace(/[^\/]+$/, targetDate);
-  })
+    if (targetDate !== 'other') {
+      location.href = location.href.replace(/[^\/]+$/, targetDate);
+    } else {
+      $( "#other-date-dialog" ).dialog( "open" );
+    }
+  });
+  $( "#other-date-dialog" ).dialog({
+    autoOpen: false,
+    resizable: false,
+    height:280,
+    width:360,
+    modal: true,
+    open: function (event, ui) {
+      if (useJqueryUIDatePicker) {
+        if ($( ".ui-datepicker" ).is( ":visible" )) {
+          $( "#other-date-picker" ).datepicker( "disable" );
+        }
+        $( "#other-date-picker" ).datepicker( "enable" );
+      }
+      $( "#other-date-picker" ).val( currentDay );
+    },
+    buttons: {
+      "cancel": function() {
+        $( this ).dialog( "close" );
+      },
+      "go": function() {
+        $( this ).dialog( "close" );
+        var targetDate = $( "#other-date-picker" ).val();
+        location.href = location.href.replace(/[^\/]+$/, targetDate);
+      }
+    },
+    beforeClose: function() {
+      $( "#other-date-picker" ).datepicker("disable");
+      if ($("#today").text() === currentDay) {
+        $( "#date-picker" ).val( "today" );
+      } else {
+        $( "#date-picker" ).val( currentDay );
+      }
+    }
+  });
+  $( "#other-date-picker" ).on ( "keydown", function(e) {
+    $( "#other-date-picker" ).datepicker( "hide" );
+    if(e.which == 13) {
+      $( "#other-date-dialog" ).dialog( "close" );
+      $( "#date-picker" ).val( currentDay );
+      var targetDate = $("#other-date-picker").val();
+      location.href = location.href.replace(/[^\/]+$/, targetDate);
+    }
+  });
+  
+  var enableJqueryUIDatePicker = function() {
+    var $input = $( "#other-date-picker" );
+    /**
+    IE sucks
+    http://stackoverflow.com/questions/13010463/avoid-reopen-datepicker-after-select-a-date
+    */
+    $( "#other-date-picker" ).datepicker({
+      fixFocusIE: false,    
+      onSelect: function(dateText, inst) {
+        this.fixFocusIE = true
+        $(this).change().focus();
+      },
+      onClose: function(dateText, inst) {
+        this.fixFocusIE = true;
+        this.focus();
+      },
+      beforeShow: function(input, inst) {
+        var result = $.browser.msie ? !this.fixFocusIE : true;
+        this.fixFocusIE = false;
+        return result;
+      }
+    });
+    $( "#other-date-picker" ).datepicker( "option", "dateFormat", "yy-mm-dd");
+    $( "#other-date-picker" ).datepicker( "option", "maxDate", today );
+    $( "#other-date-picker" ).datepicker( "option", "showAnim", "" );
+    $( "#other-date-picker" ).datepicker("disable");
+  }
+
+  if (useJqueryUIDatePicker) {
+    enableJqueryUIDatePicker();
+  }
 }
+
 enableDatePicker();
 
 $(".scroll_switch").click(function() {
