@@ -264,8 +264,9 @@ var link = function(klass, href, title) {
 
 var lastTimestamp = undefined;
 var seenTimestamp = {};
-var pollNewMsg = function(isWidget) {
+var pollNewMsg = function(isWidget, order) {
   var isWidget = (isWidget == null) ? false : isWidget;
+  var order = (order == null) ? 'normal': order;
   var time = lastTimestamp || (new Date()).getTime() / 1000.0;
   $.ajax({
     url: "/comet/poll/" + channel + "/" + time + "/updates.json",
@@ -296,7 +297,7 @@ var pollNewMsg = function(isWidget) {
               parseColor($(this).html())
             );
           }));
-        if (isWidget) {
+        if (isWidget && order == "reverse" ) {
           $(".logs").prepend(msgElement);
         }
         else {
@@ -308,7 +309,12 @@ var pollNewMsg = function(isWidget) {
       if (msgs.length > 0) {
         if (isWidget) {
           // widget layout
-          $(document).scrollTop(0);
+          if (order == "reverse") {
+            $(document).scrollTop(0);
+          }
+          else {
+            $(document).scrollTop($("html,body").height());
+          }
         }
         else {
           // desktop or mobile layout, there's a switch to turn off auto-scrolling
@@ -329,13 +335,13 @@ try {
 } catch (e) {};
 
 setTimeout(function(){
-      pollNewMsg(isWidget);
+      pollNewMsg(isWidget, order);
 }, 3000);
     },
 
     error: function() {
 setTimeout(function(){
-      pollNewMsg(isWidget);
+      pollNewMsg(isWidget, order);
 }, Math.round(Math.random() * 3000 + 3000));
     }
   });

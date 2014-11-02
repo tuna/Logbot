@@ -161,9 +161,13 @@ module IRC_Log
     end
 
     get %r{^/?widget/#{CHANNEL}$} do |m|
+      @order = request.params['order'] || 'reverse'
+
       @channel = m[:channel]
-      @msgs    = Message.last(@channel, Time.now.strftime('%Y-%m-%d'), 25).
-                   reverse
+      @msgs    = Message.last(@channel, Time.now.strftime('%Y-%m-%d'), 25)
+      if @order == "reverse"
+        @msgs = @msgs.reverse
+      end 
 
       erb :widget
     end
@@ -232,3 +236,5 @@ module Comet
     end
   end
 end
+
+# vim: ts=2 sts=2 sw=2 expandtab
