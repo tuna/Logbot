@@ -119,7 +119,8 @@ module IRC_Log
     controller_include Util
 
     get %r{^/?$} do
-      redirect "/channel/g0v.tw/today"
+      chan = ENV['LOGBOT_DEFAULT_CHANNEL'] || "tuna"
+      redirect "/channel/#{chan}/today"
     end
 
     get %r{^/?channel/#{CHANNEL}$} do |m|
